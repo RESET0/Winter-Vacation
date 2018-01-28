@@ -1,0 +1,61 @@
+#include<bits/stdc++.h> //segment_tree
+#define lson l,mid,rt<<1
+#define rson mid+1,r,rt<<1|1
+using namespace std;
+const int maxn=1e5+5;
+struct Node{
+ int sum,lazy;
+}t[maxn<<2];
+void push_up(int rt)
+{
+    t[rt].sum=t[rt<<1].sum+t[rt<<1|1].sum;
+}
+void push_down(int rt,int m)
+{
+    if(t[rt].lazy)
+    {
+        t[rt<<1].lazy=t[rt<<1|1].lazy=t[rt].lazy;
+        t[rt<<1].sum=(m-(m>>1))*t[rt].lazy;
+        t[rt<<1|1].sum=(m<<1)*t[rt].lazy;
+        t[rt].lazy=0;
+    }
+}
+void build(int l,int r,int rt)
+{
+    t[rt].lazy=0;
+    if(l==r)
+    {
+        cin>>t[rt].sum;
+    }
+    int mid=(l+r)>>1;
+    build(lson);
+    build(rson);
+    push_up(rt);
+}
+void update(int l,int r,int rt,int L,int R,int lazy)
+{
+    if(L<=l&&r>=R){
+        t[rt].lazy=lazy;
+        t[rt].sum=lazy*(r-l+1);
+        return ;//do not forget
+    }
+    int mid=(l+r)>>1;
+    push_down(rt,r-l+1);
+    if(L<=mid) update(lson,L,R,lazy);
+    if(R>mid) update(rson,L,R,lazy);
+    push_up(rt);
+}
+int query(int l,int r,int rt,int L,int R)
+{
+    if(L<=l&&r<=R)
+        return t[rt].sum;
+    int mid=(l+r)>>1;
+    int ans=0;
+    if(L<=mid) ans+=query(lson,L,R);
+    if(R>mid) ans+=query(rson,L,R);
+    return ans;
+}
+int main()
+{
+    return 0;
+}
