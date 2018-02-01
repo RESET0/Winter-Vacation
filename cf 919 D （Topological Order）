@@ -1,0 +1,67 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn=3e5+5;
+int n,m,cnt=0;
+int dp[maxn][26],deg[maxn],head[maxn];
+string a;
+queue<int>q;
+struct edge{
+int to,nxt;
+}e[maxn<<1];
+void add(int u,int v)
+{
+    e[cnt].to=v;
+    e[cnt].nxt=head[u];
+    head[u]=cnt++;
+}
+void topo()
+{
+    queue<int>q;
+    for(int i=1;i<=n;i++)
+    {
+        if(!deg[i])
+        {
+          q.push(i);
+          dp[i][a[i-1]-'a']++;
+        }
+    }
+    int crt=0;
+    while(!q.empty())
+    {
+       int u = q.front();q.pop();
+       crt++;
+       for(int i=head[u];~i;i=e[i].nxt)
+       {
+        int v=e[i].to;
+        deg[v]--;
+        if(!deg[v]) q.push(v);
+        for(int j=0;j<26;j++)
+            dp[v][j]=max(dp[v][j],dp[u][j]+(a[v-1]-'a'==j));
+       }
+    }
+    if(crt<n) cout<<"-1"<<endl;
+    else{
+        int ans=0;
+        for(int i=1;i<=n;i++)
+            for(int j=0;j<26;j++)
+             ans=max(ans,dp[i][j]);
+        cout<<ans<<endl;
+    }
+}
+int main()
+{
+   ios::sync_with_stdio(false);
+   cin>>n>>m>>a;
+   memset(head,-1,sizeof(head));
+   memset(dp,0,sizeof(0));
+   for(int i=0;i<m;i++)
+   {
+       int u,v;
+       cin>>u>>v;
+       add(u,v);
+       deg[v]++;
+   }
+   topo();
+   return 0;
+}
