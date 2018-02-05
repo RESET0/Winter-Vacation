@@ -3,9 +3,9 @@ import java.util.Scanner;
 public class Main {
  public static void main(String[] args) {
   Scanner in = new Scanner(System.in);
+  while(in.hasNext()){
   int n=in.nextInt();
-  for(int i=0;i<n;i++)
-  {
+  for(int i=0;i<n;i++){
 	  BigInteger bigint1=in.nextBigInteger();
 	  BigInteger bigint2=in.nextBigInteger();
 	  System.out.println(bigint1.add(bigint2));//+
@@ -15,6 +15,6 @@ public class Main {
 	  System.out.println(bigint1.remainder(bigint2));//%
 	  System.out.println(bigint1.gcd(bigint2));//公约数
   }
-  
+  }
  }
 }
