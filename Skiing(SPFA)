@@ -1,0 +1,67 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;
+const int maxn=105;
+ll m,n,maxx;
+struct edge{
+    int to,w,nxt;
+}e[100005];
+ll dis[10005];
+int head[100005];
+int deg[10005];
+queue<int>q;
+int cnt=0;
+void add_edge(int u,int v,int we)
+{
+    e[cnt].to=v;
+    e[cnt].w=we;
+    e[cnt].nxt=head[u];
+    head[u]=cnt++;
+}
+void SPFA(int i)
+{
+    while(!q.empty()) q.pop();
+    q.push(i);
+    while(!q.empty())
+    {
+        int u=q.front();q.pop();
+        for(int j=head[u];~j;j=e[j].nxt)
+        {
+            int v=e[j].to;
+            if(dis[v]<dis[u]+e[j].w)
+            {
+                dis[v]=dis[u]+e[j].w;
+                q.push(v);
+            }
+        }
+    }
+}
+int main()
+{
+    ios::sync_with_stdio(false);
+    int t;
+    cin>>t;
+    while(t--)
+    {
+        int u,v,we;
+        cnt=0;
+        maxx=0;
+        memset(dp,0,sizeof(dis));
+        memset(deg,0,sizeof(deg));
+        memset(head,-1,sizeof(head));
+        cin>>n>>m;
+        for(int i=0;i<m;i++)
+        {cin>>u>>v>>we;add_edge(u,v,we);deg[v]++;}
+        if(n==1)
+        {
+          cout<<"0"<<endl;
+          continue;
+        }
+        for(int i=1;i<=n;i++)
+        if(!deg[i]) SPFA(i);
+        for(int i=1;i<=n;i++)
+            maxx=max(maxx,dis[i]);
+        cout<<maxx<<endl;
+    }
+    return 0;
+}
