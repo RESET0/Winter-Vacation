@@ -1,1 +1,91 @@
+#include<bits/stdc++.h>
+using namespace std;
+const int maxn=1e5+5;
+vector<int>g[maxn];
+int rt[maxn],l[maxn],r[maxn],w[maxn];
+int x,u,v,n,m,cnt,id[maxn],index;
+struct Tire{int nxt[2],v;} t[maxn * 32 * 2];
+void init(int n){for(int i=0;i<=n;i++)if(!g[i].empty())g[i].clear();cnt=0;index=0;}
+void init_node(int id){t[id].nxt[0]=0;t[id].nxt[1]=0;t[id].v=0;}
+void add_edge(int u,int v){g[u].push_back(v);}
+void dfs(int u)
+{
+    l[u]=++index;
+    for(auto v:g[u])
+        dfs(v);
+    r[u]=index;
+}
+void update(int x,int y,int k) //y为依赖版本
+{
+    int b[31];
+    for(int i=0;i<31;i++)
+    {
+        b[i]=k&1;
+        k>>=1;
+    }
+    rt[x]=++cnt;
+    init_node(cnt);
+    int rx=rt[x],ry=rt[y];
+    for(int i=30;i>=0;i--)
+    {
+        t[rx].nxt[b[i]]=++cnt;
+        init_node(cnt);
+        t[rx].nxt[(b[i]^1)]=t[ry].nxt[(b[i]^1)];
+        t[rx].v=t[ry].v+1;
+        rx=t[rx].nxt[b[i]];ry=t[ry].nxt[b[i]];
+    }
+    t[rx].v=t[ry].v+1;
+}
+int query(int l,int r,int k)
+{
+  int b[31];
+  for(int i=0;i<31;i++)
+  {
+      b[i]=k&1;
+      b[i]^=1;
+      k>>=1;
+  }
+  int ans=0;
+  for(int i=30;i>=0;i--)
+  {
+      if(t[t[r].nxt[b[i]]].v>t[t[l].nxt[b[i]]].v)
+      {
+          ans+=b[i]*(1<<i);
+          l=t[l].nxt[b[i]];r=t[r].nxt[b[i]];
+      }
+      else
+      {
+          ans+=(b[i]^1)*(1<<i);
+          l=t[l].nxt[b[i]^1];r=t[r].nxt[b[i]^1];
+      }
+  }
+  return ans;
+}
+int main()
+{
+    ios::sync_with_stdio(false);
+    while(cin>>n>>m)
+    {
+        init(n);
+        for(int i=1;i<=n;i++)
+            cin>>w[i];
+        for(int i=2;i<=n;i++)
+        {
+            int par;
+            cin>>par;
+            add_edge(par,i);
+        }
+        dfs(1);
+        for(int i=1;i<=n;i++)
+            id[l[i]]=i;
+        for(int i=1;i<=n;i++)
+            update(i,i-1,w[id[i]]);
+        for(int i=1;i<=m;i++)
+        {
+            cin>>u>>x;
+            cout<<(x^query(rt[l[u]-1],rt[r[u]],x))<<endl;
+        }
+    }
+    return 0;
+}
 
