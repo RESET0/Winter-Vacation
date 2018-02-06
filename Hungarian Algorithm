@@ -11,7 +11,7 @@ bool find(int x)
         if(line[x][i]&&!used[i])
         {
          used[i]=1;
-         if(find(i)||!match[i])
+         if(!match[i]||find(match[i]))
          {
              match[i]=x;
              return true;
