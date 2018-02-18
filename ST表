@@ -1,0 +1,26 @@
+//O(nlogn)预处理，单词询问O(1)，空间O(nlogn)
+//d[i][j]:左端点为i长度为2^j的最值→【i,i+2^j-1】
+#include<iostream>
+#include<algorithm>
+using namespace std;
+int d[1000005][25],minn[1000005];
+int a[1000005],n;
+void rmq_init()
+{
+    for(int i=1;i<=n;i++)
+     d[i][0]=a[i];
+    for(int j=1;(1<<j)<=n;j++) //枚举区间取值（logn）
+      for(int i=1;i+(1<<j)-1<=n;i++)
+      d[i][j]=min(d[i][j-1],d[i+(1<<(j-1))][j-1]);
+    for(int len=1;len<=n;len++) //预处理所需区间长度
+    {
+        int k=0;
+        while(1<<(k+1)<=len) k++;
+        minn[len]=k;
+    }
+}
+int query(int L,int R)
+{
+    int k=minn[R-L+1];
+    return min(d[L][k],d[R-(1<<k)+1][k]);
+}
