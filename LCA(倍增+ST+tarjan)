@@ -1,0 +1,279 @@
+//Poj 1330 倍增
+#include<iostream>
+#include<algorithm>
+#include<vector>
+#include<string.h>
+using namespace std;
+typedef long long ll;
+vector<int>g[10005];
+int dep[10005],deg[10005],n;
+int fa[10005][25];
+void init(int n)
+{
+    for(int i=0;i<=n;i++)
+    {
+        if(!g[i].empty()) g[i].clear();
+        dep[i]=0;
+    }
+    memset(fa,0,sizeof(fa));
+    memset(deg,0,sizeof(deg));
+}
+void dfs(int u)
+{
+   for(int i=1;(1<<i)<dep[u]+1;i++)  //初始化父节点
+        fa[u][i]=fa[fa[u][i-1]][i-1];
+    vector<int>::iterator it;
+	for(it=g[u].begin();it!=g[u].end();it++)  //递归处理子节点
+    {
+    	int v=*it;
+        if(v!=fa[u][0])
+        {
+            dep[v]=dep[u]+1;
+            fa[v][0]=u;
+            dfs(v);
+        }
+    }
+}
+int lca(int u,int v)
+{
+    if(dep[u]<dep[v]) swap(u,v);  //爬到同一层上
+    int d=dep[u]-dep[v];
+    for(int i=0;(d>>i)>0;i++)
+    {
+        if((d>>i)&1)
+            u=fa[u][i];
+    }
+    if(u==v) return u;
+    for(int i=19;i>=0;i--) //同一层继续往上爬啊爬，直到父节点相同
+    {
+        if(!fa[u][i]||!fa[v][i]) continue;
+        if(fa[u][i]!=fa[v][i])
+        {
+            u=fa[u][i];
+            v=fa[v][i];
+        }
+    }
+    return fa[u][0];
+}
+int main()
+{
+   int t;
+   cin>>t;
+   while(t--)
+   {
+       cin>>n;
+       init(n);
+       for(int i=1;i<n;i++)
+      {
+        int u,v;
+        cin>>u>>v;
+        g[u].push_back(v);
+        deg[v]++;
+      }
+      int x,y,rt;
+      for(int i=1;i<=n;i++)
+      {
+        if(deg[i]==0)
+        {
+            rt=i;
+            break;
+        }
+      }
+    dfs(rt);
+    cin>>x>>y;
+    cout<<lca(x,y)<<endl; 
+   }
+   return 0;
+}
+
+#define _CRT_SECURE_NO_DEPRECATE ;  //ST
+#include<iostream>
+#include<vector>
+#include<cmath>
+#include<string.h>
+#include<stdio.h>
+using namespace std;
+const int maxn=1e4+5;
+int n,t,x,y,rt,s[maxn*2],mn[maxn*2],cnt;                    //注意数组大小
+int dep[maxn*2],deg[maxn],dp[maxn*2][25],id[maxn*2];
+vector<int>g[maxn];
+void init(int n)
+{
+    memset(dep,0,sizeof(dep));
+    memset(deg,0,sizeof(deg));
+    memset(dp,0,sizeof(dp));
+    memset(id,0,sizeof(id));
+    cnt=0;
+    for(int i=0;i<=n;i++)
+    {
+        if(!g[i].empty())
+         g[i].clear();
+    }
+}
+void add_edge(int u,int v)
+{
+    g[u].push_back(v);
+    g[v].push_back(u);
+    deg[v]++;
+}
+void dfs(int u,int fa,int h)
+{
+    id[++cnt]=u;
+    s[u]=cnt;
+    dep[cnt]=h;
+    vector<int>::iterator it;
+    for(it=g[u].begin();it!=g[u].end();it++)
+    {
+        int v=*it;
+        if(v!=fa)
+        {
+            dfs(v,u,h+1);
+            id[++cnt]=u;
+            dep[cnt]=h;
+        }
+    }
+}
+void ST(int n)
+{
+    for(int i=1;i<=n;i++)dp[i][0]=i;
+    mn[0]=-1;
+    for(int i=1;i<=n;i++) //预处理所需区间长度
+    {
+        int k=0;
+        while((1<<(k+1))<=i) k++;
+        mn[i]=k;
+    }
+    for(int j=1;(1<<j)<=n;j++) //枚举区间取值（logn）
+      for(int i=1;i+(1<<j)-1<=n;i++)
+      {
+          int a=dp[i][j-1],b=dp[i+(1<<(j-1))][j-1];
+          dp[i][j]=dep[a]<dep[b]?a:b;
+      }
+}
+int RMQ(int l,int r)
+{
+   if(l>r) swap(l,r);
+   int k=mn[r-l+1];
+   if(dep[dp[l][k]]<=dep[dp[r-(1<<k)+1][k]])
+    return dp[l][k];
+   else return dp[r-(1<<k)+1][k];
+}
+int lca(int u,int v)
+{
+    return id[RMQ(s[u],s[v])];
+}
+int main()
+{
+    scanf("%d",&t);
+    while(t--)
+    {
+        scanf("%d",&n);
+        init(n);
+        for(int i=0;i<n-1;i++)
+        {
+            scanf("%d %d",&x,&y);
+            add_edge(x,y);
+        }
+        for(int i=1;i<=n;i++)
+        if(!deg[i])
+        {
+            rt=i;
+            break;
+        }
+        dfs(rt,rt,0);
+        ST(2*n-1);
+        scanf("%d %d",&x,&y);
+        printf("%d\n",lca(x,y));
+    }
+    return 0;
+}
+
+//tarjan
+//poj 1330 tarjan 版
+#define _CRT_SECURE_NO_DEPRECATE ;
+#include<iostream>
+#include<vector>
+#include<string.h>
+#include<stdio.h>
+using namespace std;
+const int maxn=1e4+5;
+struct query{int v, id;};//查询结构
+vector<int>g[maxn];
+vector<query>que[maxn];
+int t,m,n,c,x,y,rt,cnt,ancestor[maxn];
+int deg[maxn],f[maxn],ans;
+bool vis[maxn];
+//并查集部分
+int findx(int x)
+{
+    if(f[x]==-1) return x;
+    return f[x]=findx(f[x]);
+}
+void unionn(int u,int v)
+{
+    int x=findx(u);
+    int y=findx(v);
+    if(x!=y) f[x]=y;
+}
+
+void init(int n)
+{
+    ans=-1;
+    for(int i=0;i<=n;i++)
+    {
+        if(!g[i].empty())
+          g[i].clear();
+     }
+     memset(vis,0,sizeof(vis));
+     memset(f,-1,sizeof(f));
+     memset(deg,0,sizeof(deg));
+}
+void tarjan(int u)
+{
+   if(ans!=-1) return;
+   ancestor[u]=u;
+   vis[u]=1;
+   vector<int>::iterator it;
+   for(it=g[u].begin();it!=g[u].end();it++)
+   {
+       int v=*it;
+       if(vis[v]) continue;
+       tarjan(v);
+       unionn(u,v);
+       ancestor[findx(u)]=u;
+   }
+   if(u==x)
+   {
+     if(vis[y])
+      ans=ancestor[findx(y)];
+      return ;
+   }
+   else if(u==y)
+   {
+     if(vis[x])
+      ans=ancestor[findx(x)];
+      return ;
+   }
+}
+int main()
+{
+   scanf("%d",&t);
+   while(t--)
+   {
+       scanf("%d",&n);
+       init(n);
+       for(int i=0;i<n-1;i++) 
+       {
+           scanf("%d %d",&x,&y);
+           g[x].push_back(y);
+           g[y].push_back(x);
+           deg[y]++;
+       }
+       for(int i=1;i<=n;i++)
+        if(deg[i]==0) {rt=i;break;}
+       scanf("%d %d",&x,&y);
+       tarjan(rt);
+       cout<<ans<<endl;
+   }
+   return 0;
+} 
