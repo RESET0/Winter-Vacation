@@ -1,0 +1,161 @@
+//在分层图上bfs找增广路
+//增光路的节点每次只能由深度小的流向深度大的，更新流量，重新定义dep继续找增广路
+#include<iostream>
+#include<vector>
+#include<queue>
+#include<string.h>
+using namespace std;
+const int maxn=305;
+const int inf=0x3f3f3f3f;
+int n,m,a[maxn],b[maxn],s,t,sum1,sum2;
+struct edge
+{
+    int from,to,cap,flow;
+    edge(int u,int v,int c,int f)
+        :from(u),to(v),cap(c),flow(f) {}
+};
+struct Dinic
+{
+    vector<int>g[maxn];
+    vector<edge>e;
+    int vis[maxn],cut[maxn],cur[maxn];
+    int dep[maxn];
+    void add_undiredge(int u,int v,int cap)
+    {
+        e.push_back(edge(u,v,cap,0));
+        e.push_back(edge(v,u,cap,0));
+        int m=e.size();
+        g[u].push_back(m-2);
+        g[v].push_back(m-1);
+    }
+    void add_diredge(int u,int v,int cap)
+    {
+        e.push_back(edge(u,v,cap,0));
+        e.push_back(edge(v,u,0,0));
+        int m=e.size();
+        g[u].push_back(m-2);
+        g[v].push_back(m-1);
+    }
+    bool bfs()   //bfs 构建分层图
+    {
+        queue<int>q;
+        memset(vis,0,sizeof(vis));
+        dep[s]=1;vis[s]=1;
+        q.push(s);
+        while(!q.empty())
+        {
+            int u=q.front();
+            q.pop();
+            for(int i=0;i<g[u].size();i++)
+            {
+                edge &v=e[g[u][i]];
+                if(!vis[v.to]&&v.cap>v.flow)
+                {
+                    vis[v.to]=1;
+                    dep[v.to]=dep[u]+1;
+                    q.push(v.to);
+                }
+            }
+        }
+        return vis[t];
+    }
+    int dfs(int u,int a)  //dfs寻找增广路，u为当前节点，a为当前流量
+    {
+        if(u==t||a==0)  //到达汇点或流量为0，直接返回
+          return a;
+        int flow=0,f;
+        for(int &i=cur[u];i<g[u].size();i++)   //当前弧优化
+        {
+            edge &v=e[g[u][i]];
+            if(dep[u]+1==dep[v.to])
+            {//分层图存在且向下增广成功
+              f=dfs(v.to,min(a,v.cap-v.flow));
+              if(f>0)
+              {
+                v.flow+=f;              //正向边+
+                e[g[u][i]^1].flow-=f;   //反向边-
+                flow+=f;                
+                a-=f;
+                if(a==0) break;
+              }
+            }
+        }
+        return flow;
+    }
+    int maxflow(int s,int t)
+    {
+        int flow=0;
+        //memset(cut,0,sizeof(cut));
+        while(bfs())
+        {
+            memset(cur,0,sizeof(cur));
+            flow+=dfs(s,inf);
+        }
+        return flow;
+    }
+    
+    void solve()
+    {
+        int ans[maxn][maxn];
+        int temp=maxflow(s,t);
+        if(temp!=sum1)
+        {
+            cout<<"NO"<<endl;
+            return ;
+        }
+        cout<<"YES"<<endl;
+        memset(ans,0,sizeof(ans));
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=0;j<g[i].size();j++)
+            {
+                edge v=e[g[i][j]];
+                if(v.flow>0)
+                 {
+                  ans[i][v.to-n]=v.flow;
+                 }
+            }
+        }
+        for(int i=1;i<=n;i++)
+        {
+            for(int j=1;j<=n;j++)
+                cout<<ans[i][j]<<" ";
+            cout<<"\n";
+        }
+    }
+};
+int main()
+{
+    cin>>n>>m;
+    Dinic res;
+    s=0,t=2*n+1;
+    sum1=0,sum2=0;
+    for(int i=1;i<=n;i++)
+    {
+        cin>>a[i];
+        sum1+=a[i];
+        res.add_diredge(s,i,a[i]);
+        res.add_diredge(i,n+i,inf);
+    }
+    for(int i=1;i<=n;i++)
+    {
+        cin>>b[i];
+        sum2+=b[i];
+        res.add_diredge(n+i,t,b[i]);
+    }
+    while(m--)
+    {
+        int u,v;
+        cin>>u>>v;
+        res.add_diredge(u,v+n,inf);
+        res.add_diredge(v,u+n,inf);
+    }
+    if(sum1!=sum2)
+    {
+      cout<<"NO"<<endl;
+      return 0;
+    }
+    res.solve();
+    system("pause");
+    return 0;
+}
